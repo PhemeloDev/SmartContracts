@@ -4,8 +4,21 @@ pragma solidity 0.8.26;
 contract SimpleStorage {
     //solidity types : typesboolean, uint , int, string, address, bytes
 
-    
-    uint256 favoriteNumber;
+    //0xd9145CCE52D386f254917e481eB44e9943F39138
 
+    uint256 public favoriteNumber;
 
+    function store(uint256 _favoriteNumber) public {
+        favoriteNumber = _favoriteNumber;
+        favoriteNumber += 1;
+        addSomeMore(favoriteNumber);
+    }
+
+    function addSomeMore(uint256 value) public{
+        favoriteNumber+= value;
+    }
+
+    function retrieve() public view returns (uint256){
+        return favoriteNumber;
+    }
 }
