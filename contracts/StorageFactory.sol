@@ -14,12 +14,10 @@ contract StorageFactory{
     function storageFactoryStore (uint256 _simpleStorageIndex, uint256 _simpleStorageNumber)  public {
         //ABI - Application Binary Interface
         //Address
-        SimpleStorage simpleStorage = simpleStorageArray[_simpleStorageIndex];
-        simpleStorage.store(_simpleStorageNumber);
+        simpleStorageArray[_simpleStorageIndex].store(_simpleStorageNumber);
     }
 
-    function storageFactoryGet(uint256 _simpleStorageIndex) public view returns(uint256){
-        SimpleStorage simpleStorage = simpleStorageArray[_simpleStorageIndex];
-        return simpleStorage.retrieve();
+    function storageFactoryGet(uint256 _simpleStorageIndex) public view returns(uint256){        
+        return simpleStorageArray[_simpleStorageIndex].retrieve();
     }
 }
