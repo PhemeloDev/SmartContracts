@@ -9,6 +9,24 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
+						"name": "_favoriteNumber",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "_name",
+						"type": "string"
+					}
+				],
+				"name": "addPerson",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
 						"name": "value",
 						"type": "uint256"
 					}
@@ -19,6 +37,25 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "favNumbertoName",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "favoriteNumber",
 				"outputs": [
@@ -26,6 +63,49 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"name": "nametoFavNumber",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "people",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "favoriteNumber",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
 					}
 				],
 				"stateMutability": "view",
@@ -86,11 +166,11 @@
 	},
 	"sources": {
 		"contracts/SimpleStorage.sol": {
-			"keccak256": "0x92e1b2dc42b4b5c62254128ae031f4d73553c909a48e238437814abf16e95ded",
+			"keccak256": "0xb6bebdb7c573ef2e63fc514fe33c89417e4b80398bcecb9a93bbfbd7e4c00726",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e2baf9d64782e2ee5c7bcb0b308423fe3ba03f6129570e9799e9576c65c3d469",
-				"dweb:/ipfs/QmQm5898ef7JHVzYGzmWzMRoHBNPDQ1T8Ufnk63UsgKGPs"
+				"bzz-raw://dfb85d66ce9da1351d0874fb51a5b379cba4971d39fca2f83280ff6706a5a0c8",
+				"dweb:/ipfs/QmSNjgXDznPVYWwujNYdky5RRRx7DysjdaGo5NZCRvyJVJ"
 			]
 		}
 	},
