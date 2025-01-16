@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE >
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -254,7 +254,7 @@
     <script>
       AOS.init({
         duration: 1000,
-        once: true
+        once: true,
       });
     </script>
 
@@ -267,6 +267,24 @@
       let contract;
 
       const contractABI = [
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_documentHash",
+              type: "string",
+            },
+            {
+              internalType: "address[]",
+              name: "_signers",
+              type: "address[]",
+            },
+          ],
+          name: "createDocument",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
         {
           anonymous: false,
           inputs: [
@@ -339,19 +357,14 @@
         {
           inputs: [
             {
-              internalType: "string",
-              name: "_documentHash",
-              type: "string",
-            },
-            {
-              internalType: "address[]",
-              name: "_signers",
-              type: "address[]",
+              internalType: "uint256",
+              name: "_documentId",
+              type: "uint256",
             },
           ],
-          name: "createDocument",
+          name: "signDocument",
           outputs: [],
-          stateMutability: "payable",
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -361,6 +374,35 @@
             {
               internalType: "uint256",
               name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "documents",
+          outputs: [
+            {
+              internalType: "string",
+              name: "documentHash",
+              type: "string",
+            },
+            {
+              internalType: "bool",
+              name: "isCompleted",
+              type: "bool",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
               type: "uint256",
             },
           ],
@@ -425,66 +467,131 @@
           stateMutability: "view",
           type: "function",
         },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "_documentId",
-              type: "uint256",
-            },
-          ],
-          name: "signDocument",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
       ];
 
       // Initialize Web3 on page load
-      window.addEventListener('load', async () => {
-        if (typeof window.ethereum !== 'undefined') {
-          web3 = new Web3(window.ethereum);
-          contract = new web3.eth.Contract(contractABI, contractAddress);
-          
-          // Update UI to show connected status
-          document.getElementById('walletAddress').textContent = 
-            `Connected: ${userAddress.substring(0,6)}...${userAddress.substring(38)}`;
-          
-          const connectBtn = document.getElementById('connectWallet');
-          connectBtn.classList.add('btn-success');
-          connectBtn.textContent = 'Connected';
-          connectBtn.disabled = true;
+      window.addEventListener("load", async () => {
+        console.log("Checking for Web3 provider...");
 
-          // Load documents immediately
-          await loadDocuments();
+        // First, explicitly check for MetaMask
+        if (window.ethereum && window.ethereum.isMetaMask) {
+          console.log("MetaMask is installed!");
+
+          try {
+            // Request account access
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+
+            // Initialize Web3
+            web3 = new Web3(window.ethereum);
+
+            // Initialize contract with your specific address
+            contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            // Force the connection to your specific address
+            const accounts = await web3.eth.getAccounts();
+            console.log("Available accounts:", accounts);
+
+            // Update UI with your specific address
+            document.getElementById(
+              "walletAddress"
+            ).textContent = `Connected: ${userAddress.substring(
+              0,
+              6
+            )}...${userAddress.substring(38)}`;
+
+            // Update button state
+            const connectBtn = document.getElementById("connectWallet");
+            connectBtn.classList.add("btn-success");
+            connectBtn.textContent = "Connected";
+            connectBtn.disabled = true;
+
+            // Check if we're on the right network (Sepolia)
+            const chainId = await window.ethereum.request({
+              method: "eth_chainId",
+            });
+            console.log("Current chainId:", chainId);
+
+            // Sepolia chainId is 0xaa36a7
+            if (chainId !== "0xaa36a7") {
+              alert("Please switch to Sepolia testnet in MetaMask");
+              // Attempt to switch to Sepolia
+              try {
+                await window.ethereum.request({
+                  method: "wallet_switchEthereumChain",
+                  params: [{ chainId: "0xaa36a7" }],
+                });
+              } catch (switchError) {
+                console.error("Error switching network:", switchError);
+              }
+            }
+
+            // Load documents
+            console.log("Loading documents...");
+            await loadDocuments();
+          } catch (error) {
+            console.error("Detailed connection error:", error);
+            alert(`Connection Error: ${error.message}`);
+          }
         } else {
-          alert("Please install MetaMask!");
+          console.log("MetaMask status:", {
+            windowEthereum: !!window.ethereum,
+            isMetaMask: window.ethereum?.isMetaMask,
+          });
+          alert(
+            "MetaMask is not installed or not properly detected. Please ensure MetaMask is installed and refresh the page."
+          );
         }
       });
 
+      // Add this helper function to check connection status
+      async function checkConnection() {
+        console.log("Checking connection status...");
+        if (web3) {
+          const accounts = await web3.eth.getAccounts();
+          console.log("Connected accounts:", accounts);
+          const balance = await web3.eth.getBalance(userAddress);
+          console.log(
+            "Account balance:",
+            web3.utils.fromWei(balance, "ether"),
+            "ETH"
+          );
+          const network = await web3.eth.net.getNetworkType();
+          console.log("Current network:", network);
+        } else {
+          console.log("Web3 not initialized");
+        }
+      }
+
+      // Call this function after page load
+      setTimeout(checkConnection, 1000);
       async function createDocument(event) {
         event.preventDefault();
-        
+
         if (!contract) {
           alert("Web3 not initialized!");
           return;
         }
 
-        const hash = document.getElementById('documentHash').value;
-        const signerAddresses = document.getElementById('signers').value.split(',').map(addr => addr.trim());
-        const amount = web3.utils.toWei(document.getElementById('amount').value, 'ether');
+        const hash = document.getElementById("documentHash").value;
+        const signerAddresses = document
+          .getElementById("signers")
+          .value.split(",")
+          .map((addr) => addr.trim());
+        const amount = web3.utils.toWei(
+          document.getElementById("amount").value,
+          "ether"
+        );
 
         try {
           setLoading(true);
-          await contract.methods.createDocument(hash, signerAddresses)
-            .send({ 
-              from: userAddress, 
-              value: amount,
-              gas: 3000000
-            });
-          
+          await contract.methods.createDocument(hash, signerAddresses).send({
+            from: userAddress,
+            value: amount,
+            gas: 3000000,
+          });
+
           alert("Document created successfully!");
-          document.getElementById('createDocumentForm').reset();
+          document.getElementById("createDocumentForm").reset();
           await loadDocuments();
         } catch (error) {
           console.error("Error creating document:", error);
@@ -497,49 +604,55 @@
       async function loadDocuments() {
         if (!contract) return;
 
-        const documentsList = document.getElementById('documentsList');
-        documentsList.innerHTML = '<div class="text-center">Loading documents...</div>';
+        const documentsList = document.getElementById("documentsList");
+        documentsList.innerHTML =
+          '<div class="text-center">Loading documents...</div>';
 
         try {
           const count = await contract.methods.documentCount().call();
-          documentsList.innerHTML = '';
-          
+          documentsList.innerHTML = "";
+
           for (let i = 0; i < count; i++) {
             const doc = await contract.methods.getDocumentInfo(i).call();
-            const hasSigned = await contract.methods.hasAddressSigned(i, userAddress).call();
+            const hasSigned = await contract.methods
+              .hasAddressSigned(i, userAddress)
+              .call();
 
-            const docElement = document.createElement('div');
-            docElement.className = 'document-item';
+            const docElement = document.createElement("div");
+            docElement.className = "document-item";
             docElement.innerHTML = `
               <p>Document Hash: ${doc.documentHash}</p>
-              <p>Status: ${doc.completed ? 'Completed' : 'Pending'}</p>
-              <p>Amount: ${web3.utils.fromWei(doc.amount, 'ether')} ETH</p>
-              ${!doc.completed && !hasSigned ? 
-                `<button onclick="signDocument(${i})" class="btn btn-primary btn-sm">Sign Document</button>` : 
-                ''}
+              <p>Status: ${doc.completed ? "Completed" : "Pending"}</p>
+              <p>Amount: ${web3.utils.fromWei(doc.amount, "ether")} ETH</p>
+              ${
+                !doc.completed && !hasSigned
+                  ? `<button onclick="signDocument(${i})" class="btn btn-primary btn-sm">Sign Document</button>`
+                  : ""
+              }
             `;
-            
+
             documentsList.appendChild(docElement);
           }
 
           if (count === 0) {
-            documentsList.innerHTML = '<p class="text-center">No documents found</p>';
+            documentsList.innerHTML =
+              '<p class="text-center">No documents found</p>';
           }
         } catch (error) {
           console.error("Error loading documents:", error);
-          documentsList.innerHTML = '<p class="text-center text-danger">Error loading documents</p>';
+          documentsList.innerHTML =
+            '<p class="text-center text-danger">Error loading documents</p>';
         }
       }
 
       async function signDocument(documentId) {
         try {
           setLoading(true);
-          await contract.methods.signDocument(documentId)
-            .send({ 
-              from: userAddress,
-              gas: 3000000
-            });
-          
+          await contract.methods.signDocument(documentId).send({
+            from: userAddress,
+            gas: 3000000,
+          });
+
           alert("Document signed successfully!");
           await loadDocuments();
         } catch (error) {
@@ -551,15 +664,16 @@
       }
 
       function setLoading(isLoading) {
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(button => {
+        const buttons = document.querySelectorAll("button");
+        buttons.forEach((button) => {
           button.disabled = isLoading;
         });
       }
 
       // Add form submit event listener
-      document.getElementById('createDocumentForm').addEventListener('submit', createDocument);
+      document
+        .getElementById("createDocumentForm")
+        .addEventListener("submit", createDocument);
     </script>
   </body>
 </html>
-
