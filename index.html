@@ -166,10 +166,13 @@
         <!-- Wallet Connection -->
         <div class="text-center mb-5">
           <button id="connectWallet" class="btn btn-primary btn-lg">
-            <i class="bi bi-wallet2"></i> Connect Wallet
+              Connect Wallet
+          </button>
+          <button onclick="reconnectWallet()" class="btn btn-outline-primary btn-sm ms-2">
+              Reconnect
           </button>
           <p id="walletAddress" class="mt-3 text-light"></p>
-        </div>
+      </div>
 
         <!-- Create Document Form -->
         <div class="document-form" data-aos="fade-up">
@@ -469,27 +472,23 @@
         },
       ];
 
-      // Initialize Web3 on page load
-      window.addEventListener("load", async () => {
-        console.log("Checking for Web3 provider...");
+      let isConnected = false;
 
-        // First, explicitly check for MetaMask
-        if (window.ethereum && window.ethereum.isMetaMask) {
-          console.log("MetaMask is installed!");
+      // Updated connect wallet function
+      async function connectWallet() {
+        console.log("Attempting to connect wallet...");
 
+        if (typeof window.ethereum !== "undefined") {
           try {
             // Request account access
-            await window.ethereum.request({ method: "eth_requestAccounts" });
+            const accounts = await window.ethereum.request({
+              method: "eth_requestAccounts",
+            });
+            console.log("Available accounts:", accounts);
 
             // Initialize Web3
             web3 = new Web3(window.ethereum);
-
-            // Initialize contract with your specific address
             contract = new web3.eth.Contract(contractABI, contractAddress);
-
-            // Force the connection to your specific address
-            const accounts = await web3.eth.getAccounts();
-            console.log("Available accounts:", accounts);
 
             // Update UI with your specific address
             document.getElementById(
@@ -501,11 +500,11 @@
 
             // Update button state
             const connectBtn = document.getElementById("connectWallet");
+            connectBtn.classList.remove("btn-primary");
             connectBtn.classList.add("btn-success");
             connectBtn.textContent = "Connected";
-            connectBtn.disabled = true;
 
-            // Check if we're on the right network (Sepolia)
+            // Check network
             const chainId = await window.ethereum.request({
               method: "eth_chainId",
             });
@@ -513,8 +512,7 @@
 
             // Sepolia chainId is 0xaa36a7
             if (chainId !== "0xaa36a7") {
-              alert("Please switch to Sepolia testnet in MetaMask");
-              // Attempt to switch to Sepolia
+              alert("Please switch to Sepolia testnet");
               try {
                 await window.ethereum.request({
                   method: "wallet_switchEthereumChain",
@@ -522,26 +520,86 @@
                 });
               } catch (switchError) {
                 console.error("Error switching network:", switchError);
+                alert("Please manually switch to Sepolia network in MetaMask");
+                return;
               }
             }
 
-            // Load documents
-            console.log("Loading documents...");
+            isConnected = true;
             await loadDocuments();
+
+            // Add event listeners for account and network changes
+            window.ethereum.on("accountsChanged", handleAccountsChanged);
+            window.ethereum.on("chainChanged", handleChainChanged);
           } catch (error) {
-            console.error("Detailed connection error:", error);
-            alert(`Connection Error: ${error.message}`);
+            console.error("Connection error:", error);
+            alert(`Failed to connect: ${error.message}`);
+            isConnected = false;
+
+            // Reset UI
+            const connectBtn = document.getElementById("connectWallet");
+            connectBtn.classList.remove("btn-success");
+            connectBtn.classList.add("btn-primary");
+            connectBtn.textContent = "Connect Wallet";
           }
         } else {
-          console.log("MetaMask status:", {
-            windowEthereum: !!window.ethereum,
-            isMetaMask: window.ethereum?.isMetaMask,
-          });
-          alert(
-            "MetaMask is not installed or not properly detected. Please ensure MetaMask is installed and refresh the page."
-          );
+          alert("Please install MetaMask!");
+        }
+      }
+
+      // Handle account changes
+      function handleAccountsChanged(accounts) {
+        console.log("Accounts changed:", accounts);
+        if (accounts.length === 0) {
+          // MetaMask is locked or user has no accounts
+          isConnected = false;
+          const connectBtn = document.getElementById("connectWallet");
+          connectBtn.classList.remove("btn-success");
+          connectBtn.classList.add("btn-primary");
+          connectBtn.textContent = "Connect Wallet";
+          document.getElementById("walletAddress").textContent = "";
+        } else {
+          // Reconnect with new account
+          connectWallet();
+        }
+      }
+
+      // Handle network changes
+      function handleChainChanged(_chainId) {
+        console.log("Network changed. Reloading...");
+        window.location.reload();
+      }
+
+      // Update the window load event
+      window.addEventListener("load", async () => {
+        console.log("Page loaded. Checking connection status...");
+
+        // Update the connect wallet button to be clickable
+        const connectBtn = document.getElementById("connectWallet");
+        connectBtn.disabled = false;
+        connectBtn.onclick = connectWallet;
+
+        // Try to reconnect if previously connected
+        if (window.ethereum && window.ethereum.isConnected()) {
+          try {
+            const accounts = await window.ethereum.request({
+              method: "eth_accounts",
+            });
+            if (accounts.length > 0) {
+              await connectWallet();
+            }
+          } catch (error) {
+            console.error("Error checking connection:", error);
+          }
         }
       });
+
+      // Add a reconnect function
+      async function reconnectWallet() {
+        if (!isConnected && window.ethereum) {
+          await connectWallet();
+        }
+      }
 
       // Add this helper function to check connection status
       async function checkConnection() {
