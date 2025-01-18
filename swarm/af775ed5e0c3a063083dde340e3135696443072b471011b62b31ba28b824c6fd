@@ -13,13 +13,9 @@ contract DocumentSignerTest {
     mapping(uint256 => Document) public documents;
     uint256 public documentCount;
     
-    // Add mapping to track user's documents
-    mapping(address => uint256[]) private userDocuments;
-    
     event DocumentCreated(uint256 documentId, string documentHash, address[] signers, uint256 amount);
     event DocumentSigned(uint256 documentId, address signer);
     event PaymentReleased(uint256 documentId, uint256 amount);
-    event Debug(string message); // New debug event
     
     // Create a document with required signers
     function createDocument(string memory _documentHash, address[] memory _signers) public payable {
@@ -32,13 +28,6 @@ contract DocumentSignerTest {
         doc.documentHash = _documentHash;
         doc.signers = _signers;
         doc.amount = msg.value;
-        
-        // Track document for each signer
-        for(uint i = 0; i < _signers.length; i++) {
-            userDocuments[_signers[i]].push(docId);
-        }
-        // Also track for creator
-        userDocuments[msg.sender].push(docId);
         
         documentCount++;
         
@@ -58,16 +47,13 @@ contract DocumentSignerTest {
         
         if (checkAllSigned(_documentId)) {
             doc.isCompleted = true;
-            emit Debug("All signers have signed, releasing payment");
             payable(msg.sender).transfer(doc.amount);
             emit PaymentReleased(_documentId, doc.amount);
-        } else {
-            emit Debug("Not all signers have signed yet");
         }
     }
     
     // Helper: Check if address is a signer
-    function isSigner(address _signer, address[] memory _signers) public pure returns (bool) {
+    function isSigner(address _signer, address[] memory _signers) internal pure returns (bool) {
         for (uint i = 0; i < _signers.length; i++) {
             if (_signers[i] == _signer) return true;
         }
@@ -97,19 +83,5 @@ contract DocumentSignerTest {
     // View function to check if a specific address has signed
     function hasAddressSigned(uint256 _documentId, address _signer) public view returns (bool) {
         return documents[_documentId].hasSigned[_signer];
-    }
-    
-    // New function to get all documents for a user
-    function getDocumentsForUser(address _user) public view returns (uint256[] memory) {
-        return userDocuments[_user];
-    }
-    
-    // New function to get signing status for multiple signers at once
-    function getSigningStatus(uint256 _documentId, address[] memory _signers) public view returns (bool[] memory) {
-        bool[] memory status = new bool[](_signers.length);
-        for(uint i = 0; i < _signers.length; i++) {
-            status[i] = documents[_documentId].hasSigned[_signers[i]];
-        }
-        return status;
     }
 }

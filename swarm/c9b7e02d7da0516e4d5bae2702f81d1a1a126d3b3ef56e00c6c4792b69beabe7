@@ -10,19 +10,6 @@
 				"inputs": [
 					{
 						"indexed": false,
-						"internalType": "string",
-						"name": "message",
-						"type": "string"
-					}
-				],
-				"name": "Debug",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
 						"internalType": "uint256",
 						"name": "documentId",
 						"type": "uint256"
@@ -184,49 +171,6 @@
 			{
 				"inputs": [
 					{
-						"internalType": "address",
-						"name": "_user",
-						"type": "address"
-					}
-				],
-				"name": "getDocumentsForUser",
-				"outputs": [
-					{
-						"internalType": "uint256[]",
-						"name": "",
-						"type": "uint256[]"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "_documentId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "address[]",
-						"name": "_signers",
-						"type": "address[]"
-					}
-				],
-				"name": "getSigningStatus",
-				"outputs": [
-					{
-						"internalType": "bool[]",
-						"name": "",
-						"type": "bool[]"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
 						"internalType": "uint256",
 						"name": "_documentId",
 						"type": "uint256"
@@ -246,30 +190,6 @@
 					}
 				],
 				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_signer",
-						"type": "address"
-					},
-					{
-						"internalType": "address[]",
-						"name": "_signers",
-						"type": "address[]"
-					}
-				],
-				"name": "isSigner",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
-					}
-				],
-				"stateMutability": "pure",
 				"type": "function"
 			},
 			{
@@ -314,11 +234,11 @@
 	},
 	"sources": {
 		"contracts/Hackerthon/DocumentSigner.sol": {
-			"keccak256": "0xc2d0fa8edd833a977e33a374c50e8df861f54539070796a8c7b893d0170e7708",
+			"keccak256": "0x9108df3b44fa3ffa225344bf79ca10ad70e93fcd74fb8234a1f45522bbb216c1",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e91b69d4d2d87088eb77eee5a2cf32d23dc9fdde0c1634799f6a18f070bc9809",
-				"dweb:/ipfs/QmVPBaVrDXwCZE9Zf6QL6xmBrUyYf1Xo9GZjK4NGicrxof"
+				"bzz-raw://af775ed5e0c3a063083dde340e3135696443072b471011b62b31ba28b824c6fd",
+				"dweb:/ipfs/QmS96JHWvp1Yb5VqjX66zL63XUBkzeQdySXFkpLiB1BkjJ"
 			]
 		}
 	},
